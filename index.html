@@ -1,57 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Dodo Chill 🐍🥪</title>
-  <style>
-    body {
-      margin: 0;
-      background: #0b1220;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      color: white;
-      font-family: sans-serif;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    h1 { margin-bottom: 5px; font-weight: 500; }
-    h3 { margin: 2px; font-weight: 300; color: #94a3b8; }
-
-    canvas {
-      background: #0f172a;
-      border-radius: 16px;
-      box-shadow: 0 0 40px rgba(59,130,246,0.2);
-    }
-
-    button {
-      margin-top: 10px;
-      padding: 8px 14px;
-      border-radius: 10px;
-      border: none;
-      background: #1e293b;
-      color: white;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-
-<h1>Dodo Chill 🐍🥪</h1>
-<h3 id="subtitle">press SPACE to start</h3>
-<h3 id="score">snacks collected: 0</h3>
-
-<canvas id="game" width="420" height="420"></canvas>
-
-<button onclick="toggleRest()">rest 🌿</button>
-<button onclick="toggleMusic()">rain 🌧️</button>
-
-<!-- 🌧️ YOUR RAIN SOUND -->
-<audio id="bgm" loop>
-  <source src="rain.mp3" type="audio/mpeg">
-</audio>
-
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -65,13 +11,12 @@ let food = {x: 105, y: 105};
 let started = false;
 let restMode = false;
 let score = 0;
-let speed = 240; // 🐢 slower
+let speed = 240;
 
 let musicOn = false;
 const bgm = document.getElementById("bgm");
 bgm.volume = 0.3;
 
-// ⭐ floating quotes
 let stars = [];
 
 function randomPos() {
@@ -96,22 +41,32 @@ function toggleRest() {
     restMode ? "inhale… exhale… 🌿" : "no pressure. just play.";
 }
 
-// 🌧️ smooth rain toggle
+// 🎵 FIXED MUSIC
 function toggleMusic() {
   if (!musicOn) {
-    bgm.volume = 0;
-    bgm.play();
-    musicOn = true;
+    bgm.currentTime = 0;
 
-    let fade = setInterval(() => {
-      if (bgm.volume < 0.3) bgm.volume += 0.02;
-      else clearInterval(fade);
-    }, 100);
+    bgm.play().then(() => {
+      musicOn = true;
+
+      bgm.volume = 0;
+      let fade = setInterval(() => {
+        if (bgm.volume < 0.3) {
+          bgm.volume += 0.02;
+        } else {
+          clearInterval(fade);
+        }
+      }, 100);
+
+    }).catch(() => {
+      alert("tap again to enable sound 🌧️");
+    });
 
   } else {
     let fade = setInterval(() => {
-      if (bgm.volume > 0.02) bgm.volume -= 0.02;
-      else {
+      if (bgm.volume > 0.02) {
+        bgm.volume -= 0.02;
+      } else {
         bgm.pause();
         musicOn = false;
         clearInterval(fade);
@@ -120,28 +75,34 @@ function toggleMusic() {
   }
 }
 
-// ⭐ floating calming text
+// ⭐ FLOATING TEXT (FIXED)
 function addStarText(text) {
+  if (stars.length > 6) stars.shift();
+
   stars.push({
     text: text,
     x: Math.random() * 360 + 20,
-    y: 400,
-    speed: Math.random() * 0.5 + 0.3,
+    y: 380,
+    speed: Math.random() * 1 + 0.8,
     alpha: 1
   });
 }
 
 function drawStars() {
-  stars.forEach((s, i) => {
+  for (let i = stars.length - 1; i >= 0; i--) {
+    let s = stars[i];
+
     ctx.fillStyle = "rgba(250,204,21," + s.alpha + ")";
     ctx.font = "14px sans-serif";
     ctx.fillText(s.text, s.x, s.y);
 
     s.y -= s.speed;
-    s.alpha -= 0.002;
+    s.alpha -= 0.02;
 
-    if (s.alpha <= 0) stars.splice(i, 1);
-  });
+    if (s.alpha <= 0) {
+      stars.splice(i, 1);
+    }
+  }
 }
 
 function drawGlow(x, y, color) {
@@ -155,7 +116,6 @@ function drawGlow(x, y, color) {
 function gameLoop() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // 🌙 start screen
   if (!started) {
     ctx.fillStyle="#94a3b8";
     ctx.font="18px sans-serif";
@@ -164,7 +124,6 @@ function gameLoop() {
     return;
   }
 
-  // 🌿 rest mode
   if (restMode) {
     let t = Date.now()/500;
     let size = 40 + Math.sin(t)*20;
@@ -192,7 +151,6 @@ function gameLoop() {
 
   snake.unshift(head);
 
-  // 🥪 eat sandwich
   if(head.x === food.x && head.y === food.y){
     score++;
     document.getElementById("score").innerText = "snacks collected: " + score;
@@ -206,7 +164,6 @@ function gameLoop() {
     snake.pop();
   }
 
-  // ❌ collision reset
   for(let i=1;i<snake.length;i++){
     if(head.x === snake[i].x && head.y === snake[i].y){
       snake = [{x:210,y:210}];
@@ -215,12 +172,10 @@ function gameLoop() {
     }
   }
 
-  // 🥪 draw food
   drawGlow(food.x,food.y,"rgba(251,191,36,0.6)");
   ctx.font="18px Arial";
   ctx.fillText("🥪",food.x,food.y+16);
 
-  // 🐍 snake
   snake.forEach((s,i)=>{
     drawGlow(s.x,s.y,"rgba(34,197,94,0.4)");
     ctx.fillStyle = i===0 ? "#4ade80" : "#22c55e";
@@ -232,6 +187,3 @@ function gameLoop() {
 
 gameLoop();
 </script>
-
-</body>
-</html>
