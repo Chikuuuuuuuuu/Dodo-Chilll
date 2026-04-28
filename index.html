@@ -1,3 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dodo Chill 🐍🥪</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0b1220;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+      font-family: sans-serif;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    h1 { margin-bottom: 5px; font-weight: 500; }
+    h3 { margin: 2px; font-weight: 300; color: #94a3b8; }
+
+    canvas {
+      background: #0f172a;
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(59,130,246,0.2);
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: none;
+      background: #1e293b;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Dodo Chill 🐍🥪</h1>
+<h3 id="subtitle">press SPACE to start</h3>
+<h3 id="score">snacks collected: 0</h3>
+
+<canvas id="game" width="420" height="420"></canvas>
+
+<button onclick="toggleRest()">rest 🌿</button>
+<button onclick="toggleMusic()">rain 🌧️</button>
+
+<audio id="bgm" loop>
+  <source src="rain.mp3" type="audio/mpeg">
+</audio>
+
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -41,7 +94,6 @@ function toggleRest() {
     restMode ? "inhale… exhale… 🌿" : "no pressure. just play.";
 }
 
-// 🎵 FIXED MUSIC
 function toggleMusic() {
   if (!musicOn) {
     bgm.currentTime = 0;
@@ -75,16 +127,13 @@ function toggleMusic() {
   }
 }
 
-// ⭐ FLOATING TEXT (FIXED)
+// ⭐ 1-second floating quotes
 function addStarText(text) {
-  if (stars.length > 6) stars.shift();
-
   stars.push({
     text: text,
-    x: Math.random() * 360 + 20,
-    y: 380,
-    speed: Math.random() * 1 + 0.8,
-    alpha: 1
+    x: snake[0].x + Math.random()*40 - 20,
+    y: snake[0].y,
+    life: 60
   });
 }
 
@@ -92,14 +141,16 @@ function drawStars() {
   for (let i = stars.length - 1; i >= 0; i--) {
     let s = stars[i];
 
-    ctx.fillStyle = "rgba(250,204,21," + s.alpha + ")";
+    let alpha = s.life / 60;
+
+    ctx.fillStyle = "rgba(250,204,21," + alpha + ")";
     ctx.font = "14px sans-serif";
     ctx.fillText(s.text, s.x, s.y);
 
-    s.y -= s.speed;
-    s.alpha -= 0.02;
+    s.y -= 1;
+    s.life--;
 
-    if (s.alpha <= 0) {
+    if (s.life <= 0) {
       stars.splice(i, 1);
     }
   }
@@ -187,3 +238,6 @@ function gameLoop() {
 
 gameLoop();
 </script>
+
+</body>
+</html>
